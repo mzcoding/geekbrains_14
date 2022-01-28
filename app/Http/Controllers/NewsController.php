@@ -3,24 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\News;
+use App\QueryBuilders\NewsQueryBuilder;
 use Illuminate\Http\Request;
 
 class NewsController extends Controller
 {
-    public function index()
+    public function index(NewsQueryBuilder $queryBuilder)
 	{
-		$news = new News();
-		$news = $news->getNews();
+		$news = News::select(News::$availableFields)->get();
 		return view('news.index', [
 			'newsList' => $news
 		]);
 	}
 
-	public function show(int $id)
+	public function show(News $news)
 	{
-		$news = new News();
-		$news = $news->getNewsById($id);
-
 		return view('news.show', [
 			'news' => $news
 		]);
