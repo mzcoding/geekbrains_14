@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\News\CreateRequest;
+use App\Http\Requests\News\UpdateRequest;
 use App\Models\Category;
 use App\Models\News;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class NewsController extends Controller
 {
@@ -36,19 +39,15 @@ class NewsController extends Controller
 		]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+	/**
+	 * Store a newly created resource in storage.
+	 *
+	 * @param CreateRequest $request
+	 * @return \Illuminate\Http\RedirectResponse
 	 */
-    public function store(Request $request)
+    public function store(CreateRequest $request)
     {
-		$request->validate([
-			'title' => ['required', 'string', 'min:5']
-		]);
-
-		$data = $request->only(['title', 'author', 'status', 'description']) + [
+		$data = $request->validated() + [
 			'slug' => \Str::slug($request->input('title'))
 		];
 
@@ -58,10 +57,10 @@ class NewsController extends Controller
 			$created->categories()->attach($request->input('categories'));
 
 			return redirect()->route('admin.news.index')
-				->with('success', 'Запись успешно добавлена');
+				->with('success', __('messages.admin.news.created.success'));
 		}
 
-		return back()->with('error', 'Не удалось добавить запись')
+		return back()->with('error', __('messages.admin.news.created.error'))
 			->withInput();
     }
 
@@ -101,17 +100,13 @@ class NewsController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 *
-	 * @param \Illuminate\Http\Request $request
+	 * @param UpdateRequest $request
 	 * @param News $news
 	 * @return \Illuminate\Http\RedirectResponse
 	 */
-    public function update(Request $request, News $news)
+    public function update(UpdateRequest $request, News $news)
     {
-		$request->validate([
-			'title' => ['required', 'string', 'min:5']
-		]);
-
-		$data = $request->only(['title', 'author', 'status', 'description']) + [
+		$data = $request->validated() + [
 				'slug' => \Str::slug($request->input('title'))
 		];
 
@@ -131,10 +126,10 @@ class NewsController extends Controller
 			}
 
 			return redirect()->route('admin.news.index')
-				->with('success', 'Запись успешно обновлена');
+				->with('success', __('messages.admin.news.updated.success'));
 		}
 
-		return back()->with('error', 'Не удалось обновить запись')
+		return back()->with('error', __('messages.admin.news.updated.error'))
 			->withInput();
     }
 
@@ -142,10 +137,16 @@ class NewsController extends Controller
 	 * Remove the specified resource from storage.
 	 *
 	 * @param News $news
-	 * @return \Illuminate\Http\Response
+	 * @return \Illuminate\Http\JsonResponse
 	 */
     public function destroy(News $news)
     {
-        //
+        try{
+			$news->delete();
+			return response()->json('ok');
+		}catch (\Exception $e) {
+			\Log::error('News error destroy', [$e]);
+			return response()->json('error', 400);
+		}
     }
 }

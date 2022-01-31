@@ -2,8 +2,7 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use App\Models\News;
 use Tests\TestCase;
 
 class NewsTest extends TestCase
@@ -21,7 +20,8 @@ class NewsTest extends TestCase
     }
 	public function testShow()
 	{
-		$response = $this->get(route('news.show', ['id' => mt_rand(1,10)]));
+		$news = News::factory()->create();
+		$response = $this->get(route('news.show', ['news' => $news]));
 
 		$response->assertStatus(200);
 	}
