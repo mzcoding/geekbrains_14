@@ -53,7 +53,6 @@ class NewsController extends Controller
 
 		$created = News::create($data);
 		if($created) {
-
 			$created->categories()->attach($request->input('categories'));
 
 			return redirect()->route('admin.news.index')

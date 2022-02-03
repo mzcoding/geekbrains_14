@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\Account\IndexController as AccountController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\NewsController as AdminNewsController;
 
@@ -22,10 +23,20 @@ Route::get('/', function () {
 });
 
 //news
-Route::group(['as' => 'admin.', 'prefix' => 'admin'], function() {
+Route::group(['middleware' => 'auth'], function() {
+Route::get('/account', AccountController::class)
+	->name('account');
+
+Route::get('/logout', function() {
+	Auth::logout();
+	return redirect()->route('login');
+})->name('account.logout');
+
+Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => 'admin'], function() {
    Route::view('/', 'admin.index')->name('index');
    Route::resource('/categories', AdminCategoryController::class);
    Route::resource('/news', AdminNewsController::class);
+});
 });
 
 Route::get('/news', [NewsController::class, 'index'])
@@ -79,3 +90,15 @@ Route::get('/collection', function() {
 		$collection2->where('ages', '>', 20)
 	);
 });
+
+Route::get('/session', function() {
+	 if(session()->has('test')) {
+		 //dd(session()->all(), session()->get('test'));
+		 session()->forget('test');
+	 }
+
+	 session(['test' => rand(1,1000)]);
+});
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
