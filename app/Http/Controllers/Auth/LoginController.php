@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Events\LoginEvent;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -41,7 +42,6 @@ class LoginController extends Controller
 
 	protected function authenticated(Request $request, $user)
 	{
-		$user->last_login_at = now('Europe/Moscow');
-		$user->save();
+         event(new LoginEvent($user));
 	}
 }
